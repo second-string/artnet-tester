@@ -157,7 +157,7 @@ class ArtIpProgReplyPacket(StandardArtNetPacket):
             print("Returning empty ArtPollReplyPacket")
 
     def print_fields(self):
-        print("ArtNetPollReply packet:")
+        print("ArtNetIPProgReply packet:")
         print(f'{"IP addr":<15} {IPv4Address(self.ip_addr)}')
         print(f'{"Subnet mask":<15} {IPv4Address(self.subnet_mask)}')
         print(f'{"Port":<15} {self.port}')

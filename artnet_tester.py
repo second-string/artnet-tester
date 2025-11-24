@@ -52,10 +52,11 @@ if __name__ == "__main__":
             print("2) Set default gateway")
             print("3) Set subnet mask")
             print("4) Set port")
-            print("5) No changes, read existing config")
+            print("5) Set DHCP or static IP")
+            print("6) No changes, read existing config")
             print()
 
-            num = helpers.prompt_for_number_in_range("Choice: ", range(1, 6))
+            num = helpers.prompt_for_number_in_range("Choice: ", range(1, 7))
             packet = ArtProgIpPacket()
             if num == 1:
                 ip = helpers.prompt_for_ip("New IP: ")
@@ -70,6 +71,15 @@ if __name__ == "__main__":
                 port = helpers.prompt_for_number("New port: ")
                 pass
             elif num == 5:
+                ip_mode = helpers.prompt_for_string_in_range(
+                    "DHCP or static? (dhcp/static): ", ["dhcp", "static"])
+                dhcp_en = False
+                if ip_mode.lower() == "dhcp":
+                    dhcp_en = True
+                elif ip_mode.lower() == "static":
+                    dhcp_en = False
+                packet.set_dhcp(dhcp_en)
+            elif num == 6:
                 # do nothing, packet is already set up with command == 0 for reading back current config
                 pass
             else:

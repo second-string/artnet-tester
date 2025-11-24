@@ -54,6 +54,9 @@ class ArtProgIpPacket(StandardArtNetPacket):
                             self.filler4, ip_int, subnet_int, self.new_port,
                             gateway_int)
 
+    def set_dhcp(self, dhcp_enabled):
+        self.command = self.command | ((1 << 7) | dhcp_enabled << 6)
+
     def set_new_ip(self, new_ip):
         self.command = self.command | (1 << 7) | (1 << 2)
         self.new_ip = new_ip
