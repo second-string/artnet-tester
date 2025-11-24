@@ -158,8 +158,9 @@ class ArtIpProgReplyPacket(StandardArtNetPacket):
 
     def print_fields(self):
         print("ArtNetIPProgReply packet:")
+        print(f'{"DHCP enabled":<15} {self.status >> 6}')
         print(f'{"IP addr":<15} {IPv4Address(self.ip_addr)}')
         print(f'{"Subnet mask":<15} {IPv4Address(self.subnet_mask)}')
         print(f'{"Port":<15} {self.port}')
-        print(f'{"Status":<15} {hex(self.status)}')
         print(f'{"Gateway":<15} {IPv4Address(self.gateway)}')
+        print(f'{"Status":<15} {hex(self.status)}')

@@ -22,11 +22,12 @@ def find_matching_interface(ip_msb):
 
 
 def open_connection():
-    source_ip, interface = find_matching_interface(2)
+    ip_prefix = dest_ip.split(".")[0]
+    source_ip, interface = find_matching_interface(ip_prefix)
 
     if source_ip is None:
         print(
-            "Warning: No interface found with IP starting with '2.'. Binding to 0.0.0.0"
+            f"Warning: No interface found with IP starting with '{ip_prefix}'. Binding to 0.0.0.0"
         )
         print(
             "Note: in many cases this will work fine. Error will be seen if there exists another network interface with a /8 subnet"
