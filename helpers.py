@@ -128,6 +128,32 @@ def prompt_for_string_in_range(prompt_text, allowed_values):
     return temp_str
 
 
+# Allows space-delimited list of input numbers
+def prompt_for_numbers_in_range(prompt_text, allowed_values):
+    while True:
+        tokens = input(prompt_text).split()
+        if not tokens:
+            print("Must enter at least one number")
+            continue
+        parsed = []
+        error = False
+        for token in tokens:
+            try:
+                num = int(token)
+                if num in allowed_values:
+                    parsed.append(num)
+                else:
+                    print(f"Number {num} not in allowed values")
+                    error = True
+                    break
+            except ValueError:
+                print(f"Not a valid number: {token}")
+                error = True
+                break
+        if not error:
+            return parsed
+
+
 def prompt_for_ip(prompt_text):
     valid_input = False
     while not valid_input:
