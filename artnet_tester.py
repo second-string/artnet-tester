@@ -38,6 +38,8 @@ if __name__ == "__main__":
             if num == 1:
                 ip = helpers.prompt_for_ip("New IP: ")
                 helpers.dest_ip = str(ip)
+                sock.close()
+                sock = helpers.open_connection()
             elif num == 2:
                 helpers.dest_port = helpers.prompt_for_number_in_range(
                     "New port: ", range(1, 10000))
