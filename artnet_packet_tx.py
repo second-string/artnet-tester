@@ -6,6 +6,7 @@ from artnet_packet_common import artnet_standard_packet_fmt, StandardArtNetPacke
 artnet_poll_packet_fmt = artnet_standard_packet_fmt + "2B4H"
 artnet_ipprog_packet_fmt = artnet_standard_packet_fmt + "4B2IHI"
 artnet_command_packet_partial_fmt = artnet_standard_packet_fmt + "HH"  # partial format because # of trailing string format specifier depends on length of command string passed into constructor
+artnet_dmx_packet_fmt = artnet_standard_packet_fmt + "BBBBH512s"
 
 
 class ArtPollPacket(StandardArtNetPacket):
@@ -88,3 +89,26 @@ class ArtCommandPacket(StandardArtNetPacket):
     def pack(self):
         return super().pack(self.esta_mfgr, self.length,
                             bytes(self.command_string, "utf-8"))
+
+
+class ArtDmxPacket(StandardArtNetPacket):
+
+    def __init__(self, universe, data_bytes):
+        # universe is a 15-bit value: low 8 bits -> sub_uni, high 7 bits -> net
+        self.sequence = 0  # 0 disables sequence checking
+        self.physical = 0
+        self.sub_uni = universe & 0xFF
+        self.net = (universe >> 8) & 0x7F
+        # length must be even and between 2-512
+        length = max(2, len(data_bytes))
+        if length % 2 != 0:
+            length += 1
+        self.length = length
+        padded = list(data_bytes) + [0] * (512 - len(data_bytes))
+        self.data = bytes(padded)
+
+        super().__init__(artnet_dmx_packet_fmt, 0x5000)
+
+    def pack(self):
+        return super().pack(self.sequence, self.physical, self.sub_uni,
+                            self.net, self.length, self.data)

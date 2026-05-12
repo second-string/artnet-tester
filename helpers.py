@@ -1,8 +1,12 @@
 from ipaddress import ip_address
+import select
 import socket
+import sys
+import termios
+import tty
 import netifaces
 
-dest_ip = "2.2.103.115"
+dest_ip = "192.168.10.53"
 dest_port = 6454
 
 
@@ -135,6 +139,21 @@ def prompt_for_ip(prompt_text):
             print("Not a valid IP")
 
     return ip
+
+
+def wait_or_key_pressed(timeout_sec):
+    """Wait up to timeout_sec; return True if any key was pressed, False on timeout."""
+    fd = sys.stdin.fileno()
+    old_settings = termios.tcgetattr(fd)
+    try:
+        tty.setcbreak(fd)
+        ready, _, _ = select.select([sys.stdin], [], [], timeout_sec)
+        if ready:
+            sys.stdin.read(1)
+            return True
+        return False
+    finally:
+        termios.tcsetattr(fd, termios.TCSADRAIN, old_settings)
 
 
 def bswap16(val):

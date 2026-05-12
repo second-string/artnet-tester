@@ -1,6 +1,6 @@
 import helpers
 
-from artnet_packet_tx import ArtPollPacket, ArtProgIpPacket, ArtCommandPacket
+from artnet_packet_tx import ArtPollPacket, ArtProgIpPacket, ArtCommandPacket, ArtDmxPacket
 from artnet_packet_rx import ArtPollReplyPacket, ArtIpProgReplyPacket
 
 if __name__ == "__main__":
@@ -17,12 +17,16 @@ if __name__ == "__main__":
         print("2) Send ArtPoll")
         print("3) Send ArtIPProg")
         print("4) Send ArtCommand")
+        print("5) Send ArtDMX")
+        print("6) Send static ArtDMX (full universe of one byte value on universe 0)")
+        print("7) Send cycling RGB ArtDMX (universe 0, ctrl+c or any key to stop)")
+        print("8) Send cycling RGBW ArtDMX (universe 0, ctrl+c or any key to stop)")
         print("9) Exit")
         print()
 
         valid_input = False
         num = helpers.prompt_for_number_in_range("Choice: ",
-                                                 list(range(1, 5)) + [9])
+                                                 list(range(1, 9)) + [9])
         if num == 1:
             print()
             print("Set destination IP or port?")
@@ -95,6 +99,85 @@ if __name__ == "__main__":
             command_string = input("Enter the command string: ")
             packet = ArtCommandPacket(command_string)
             helpers.send_packet(packet, sock, False)
+        elif num == 5:
+            universe = helpers.prompt_for_number_in_range(
+                "Universe (0-32767): ", range(0, 32768))
+            print("Enter DMX data bytes (1-512 bytes, space-delimited).")
+            print("Use decimal (e.g. 255) or hex with 0x prefix (e.g. 0xFF).")
+            data_bytes = None
+            while data_bytes is None:
+                raw = input("Data: ").strip()
+                tokens = raw.split()
+                if len(tokens) < 1 or len(tokens) > 512:
+                    print(f"Must enter 1-512 bytes, got {len(tokens)}")
+                    continue
+                parsed = []
+                error = False
+                for token in tokens:
+                    try:
+                        if token.lower().startswith("0x"):
+                            val = int(token, 16)
+                        else:
+                            val = int(token)
+                        if val < 0 or val > 255:
+                            print(f"Value {token} out of range (0-255)")
+                            error = True
+                            break
+                        parsed.append(val)
+                    except ValueError:
+                        print(f"Invalid value: {token}")
+                        error = True
+                        break
+                if not error:
+                    data_bytes = parsed
+            packet = ArtDmxPacket(universe, data_bytes)
+            helpers.send_packet(packet, sock, False)
+            print(f"Sent ArtDMX: universe={universe}, {len(data_bytes)} byte(s)")
+        elif num == 6:
+            byte_val = helpers.prompt_for_number_in_range(
+                "Byte value (0-255): ", range(0, 256))
+            data_bytes = [byte_val] * 512
+            packet = ArtDmxPacket(0, data_bytes)
+            helpers.send_packet(packet, sock, False)
+            print(f"Sent ArtDMX: universe=0, 512 bytes of {byte_val}")
+        elif num == 7:
+            print("Cycling R -> G -> B on universe 0. Press any key to stop.")
+            colors = [("R", 0), ("G", 1), ("B", 2)]
+            idx = 0
+            try:
+                while True:
+                    label, offset = colors[idx]
+                    data_bytes = [0] * 512
+                    for i in range(offset, 510, 3):
+                        data_bytes[i] = 128
+                    packet = ArtDmxPacket(0, data_bytes)
+                    helpers.send_packet(packet, sock, False)
+                    print(f"Sent {label}=128")
+                    if helpers.wait_or_key_pressed(1.0):
+                        break
+                    idx = (idx + 1) % len(colors)
+            except KeyboardInterrupt:
+                print()
+            print("Stopped RGB cycle")
+        elif num == 8:
+            print("Cycling R -> G -> B -> W on universe 0. Press any key to stop.")
+            colors = [("R", 0), ("G", 1), ("B", 2), ("W", 3)]
+            idx = 0
+            try:
+                while True:
+                    label, offset = colors[idx]
+                    data_bytes = [0] * 512
+                    for i in range(offset, 512, 4):
+                        data_bytes[i] = 128
+                    packet = ArtDmxPacket(0, data_bytes)
+                    helpers.send_packet(packet, sock, False)
+                    print(f"Sent {label}=128")
+                    if helpers.wait_or_key_pressed(1.0):
+                        break
+                    idx = (idx + 1) % len(colors)
+            except KeyboardInterrupt:
+                print()
+            print("Stopped RGBW cycle")
         elif num == 9:
             break
         else:
